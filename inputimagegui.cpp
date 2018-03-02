@@ -15,16 +15,6 @@ inputImageGui::inputImageGui(ndviProcessor &_refToProcessorInConst, QWidget *par
     loadNirImageButton = createButton("Load NIR Image");
     processButton = createButton("Process Images");
 
-    pixPerRowRed = createLineEdit("Pixels Per Row");
-    pixPerColRed = createLineEdit("Pixels Per Column");
-    totalPixRed = createLineEdit("Total Pixels");
-    fileImageBandRed = createLineEdit("Spectral Band");
-
-    pixPerRowNir = createLineEdit("Pixels Per Row");
-    pixPerColNir = createLineEdit("Pixels Per Column");
-    totalPixNir = createLineEdit("Total Pixels");
-    fileImageBandNir = createLineEdit("Spectral Band");
-
     redBandImageDisplay = createLabelDisplay();
     nirBandImageDisplay = createLabelDisplay();
 
@@ -40,14 +30,6 @@ inputImageGui::inputImageGui(ndviProcessor &_refToProcessorInConst, QWidget *par
     inputLayout->setAlignment(processButton, Qt::AlignRight);
     inputLayout->addWidget(redBandImageDisplay, 1, 0, 12, 12);
     inputLayout->addWidget(nirBandImageDisplay, 20, 0, 12, 12);
-    inputLayout->addWidget(pixPerRowRed, 1, 8, 1, 1);
-    inputLayout->addWidget(pixPerColRed, 3, 8, 1, 1);
-    inputLayout->addWidget(totalPixRed, 5, 8, 1, 1);
-    inputLayout->addWidget(fileImageBandRed, 7, 8, 1, 1);
-    inputLayout->addWidget(pixPerRowNir, 20, 8, 1, 1);
-    inputLayout->addWidget(pixPerColNir, 22, 8, 1, 1);
-    inputLayout->addWidget(totalPixNir, 24, 8, 1, 1);
-    inputLayout->addWidget(fileImageBandNir, 26, 8, 1, 1);
     inputLayout->addWidget(sourceSatelliteList, 13, 25, 1, 8);
     inputLayout->addWidget(inputExceptionsDisplay, 20, 20, 0, 0);
 
@@ -105,50 +87,139 @@ QPlainTextEdit *inputImageGui::createTextEdit()
 
 void inputImageGui::loadRedImage()
 {
+    inputExceptionsDisplay->clear();
+    _refToProcessorInInput.clearRedInputImage();
     const QString& redBandFileName = QFileDialog::getOpenFileName(this, "Open Image", "/home/seth/Documents/LandSat Images", "Image Files (*.tiff, *.tif, *.TIF)");
     _refToProcessorInInput.setRedInputImage(redBandFileName.toStdString());
     QPixmap pix;
     pix.load(QString::fromStdString(_refToProcessorInInput.getRedBandImagePath()));
 
-    pixPerRowRed->setText(QString::fromStdString((to_string(_refToProcessorInInput.getRedBandRows()))));
-    pixPerColRed->setText(QString::fromStdString((to_string(_refToProcessorInInput.getRedBandCols()))));
-    totalPixRed->setText(QString::fromStdString((to_string(_refToProcessorInInput.getRedBandTotalPix()))));
+    pixPerRowRed = _refToProcessorInInput.getRedBandRows();
+    pixPerColRed = _refToProcessorInInput.getRedBandCols();
+    totalPixRed = _refToProcessorInInput.getRedBandTotalPix();
+    numChannelsRed = _refToProcessorInInput.getRedBandChannels();
 
     redBandImageDisplay->setPixmap(pix);
+    checkForInputErrors();
 }
 
 void inputImageGui::loadNirImage()
 {
+    inputExceptionsDisplay->clear();
+    _refToProcessorInInput.clearNirInputImage();
     const QString& nirBandFileName = QFileDialog::getOpenFileName(this, "Open Image", "/home/seth/Documents/LandSat Images", "Image Files (*.tiff, *.tif, *.TIF)");
     _refToProcessorInInput.setNirInputImage(nirBandFileName.toStdString());
     QPixmap pix;
     pix.load(QString::fromStdString(_refToProcessorInInput.getNirBandImagePath()));
 
-    pixPerRowNir->setText(QString::fromStdString((to_string(_refToProcessorInInput.getNirBandRows()))));
-    pixPerColNir->setText(QString::fromStdString((to_string(_refToProcessorInInput.getNirBandCols()))));
-    totalPixNir->setText(QString::fromStdString((to_string(_refToProcessorInInput.getNirBandTotalPix()))));
+    pixPerRowNir = _refToProcessorInInput.getNirBandRows();
+    pixPerColNir = _refToProcessorInInput.getNirBandCols();
+    totalPixNir = _refToProcessorInInput.getNirBandTotalPix();
+    numChannelsNir = _refToProcessorInInput.getNirBandChannels();
 
     nirBandImageDisplay->setPixmap(pix);
+    checkForInputErrors();
 }
 
 void inputImageGui::checkForInputErrors()
 {
+    inputExceptionsDisplay->clear();
+
+    QString waiting = "Waiting for second image";
+    QString colException = "WARNING: Images have different number of columns";
+    QString colMatch = "Images have same number of columns";
+    QString rowException = "WARNING: Images have different number of rows";
+    QString rowMatch = "Images have same number of rows";
+    QString totalPixException = "WARNING: Images have different number of total pixels";
+    QString totalPixMatch = "Images have same number of total pixels";
+    QString redChannelException = "WARNING: Red band image has greater than 1 channel";
+    QString redChannelMatch = "Red band image is single channel";
+    QString nirChannelException = "WARNING: Nir band image has greater than 1 channel";
+    QString nirChannelMatch = "Nir band image is single channel";
+    QString fileTypeException = "WARNING: Images have different file extensions";
+    QString fileTypeMatch = "Images have the same file extensions";
+
+    if (redBandImageDisplay->pixmap() == 0 || nirBandImageDisplay->pixmap() == 0)
+    {
+        inputExceptionsDisplay->clear();
+        inputExceptionsDisplay->appendPlainText(waiting);
+        return;
+    }
+
+    if (_refToProcessorInInput.checkIfColsMatch() == false)
+    {
+        inputExceptionsDisplay->appendPlainText(colException);
+    }
+
+    else if (_refToProcessorInInput.checkIfColsMatch() == true)
+    {
+        inputExceptionsDisplay->appendPlainText(colMatch);
+    }
+
+    if (_refToProcessorInInput.checkIfRowsMatch() == false)
+    {
+        inputExceptionsDisplay->appendPlainText(rowException);
+    }
+
+    else if (_refToProcessorInInput.checkIfRowsMatch() == true)
+    {
+        inputExceptionsDisplay->appendPlainText(rowMatch);
+    }
+
+    if (_refToProcessorInInput.checkIfTotalPixMatch() == false)
+    {
+        inputExceptionsDisplay->appendPlainText(totalPixException);
+    }
+
+    else if (_refToProcessorInInput.checkIfTotalPixMatch() == true)
+    {
+        inputExceptionsDisplay->appendPlainText(totalPixMatch);
+    }
+
+    if (_refToProcessorInInput.checkRedSingleChannel() == false)
+    {
+        inputExceptionsDisplay->appendPlainText(redChannelException);
+    }
+
+    else if (_refToProcessorInInput.checkRedSingleChannel() == true)
+    {
+        inputExceptionsDisplay->appendPlainText(redChannelMatch);
+    }
+
+    if (_refToProcessorInInput.checkNirSingleChannel() == false)
+    {
+        inputExceptionsDisplay->appendPlainText(nirChannelException);
+    }
+
+    else if (_refToProcessorInInput.checkNirSingleChannel() == true)
+    {
+        inputExceptionsDisplay->appendPlainText(nirChannelMatch);
+    }
+
+    if (_refToProcessorInInput.checkIfFileTypesMatch() == false)
+    {
+        inputExceptionsDisplay->appendPlainText(fileTypeException);
+    }
+
+    else if (_refToProcessorInInput.checkIfFileTypesMatch() == true)
+    {
+        inputExceptionsDisplay->appendPlainText(fileTypeMatch);
+    }
 
 }
-
 void inputImageGui::processImages()
 {
+    if (redBandImageDisplay->pixmap() == 0 || nirBandImageDisplay->pixmap() == 0)
+    {
+        QMessageBox *messageBox = new QMessageBox;
+        messageBox->setWindowTitle("Process Aborted");
+        messageBox->setText("Cannot process without two images. Please load images to continue.");
+        messageBox->setIcon(QMessageBox::Critical);
+        messageBox->exec();
+        return;
+    }
+
     _refToProcessorInInput.processImages();
-}
-
-void inputImageGui::checkSourceSatellite()
-{
-
-}
-
-bool inputImageGui::checkSourceBands()
-{
-
 }
 
 
