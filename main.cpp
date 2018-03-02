@@ -1,6 +1,5 @@
-#include <qapplication.h>
-#include "tinyndvigui.h"
-#include "inputimagegui.h"
+#include <QApplication>
+#include "maingui.h"
 #include <QtPlugin>
 #include <QPluginLoader>
 #include <QCoreApplication>
@@ -15,7 +14,7 @@ int main(int argc, char *argv[])
 { 
     QApplication app(argc, argv);
 
-    tinyNDVIgui gui; //(_refToProcessor);
+    mainGui gui; //(_refToProcessor);
 
     gui.show();
 

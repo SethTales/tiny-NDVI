@@ -1,8 +1,8 @@
 #include "ndviprocessor.h"
 #include <iostream>
 
-ndviProcessor::ndviProcessor(outputImageGui& _refToOutputInConst) :
-    _refToOutputInProcessor(_refToOutputInConst)
+ndviProcessor::ndviProcessor(QObject *parent) :
+    QObject(parent)
 {
     redBandFilePath = "";
     nirBandFilePath = "";
@@ -20,6 +20,18 @@ void ndviProcessor::setNirInputImage(string _nirBandFilePath)
     nirBandFilePath = _nirBandFilePath;
     String cv_nirBandFilePath(nirBandFilePath);
     nirBandImage = imread(cv_nirBandFilePath, IMREAD_GRAYSCALE);
+}
+
+void ndviProcessor::clearRedInputImage()
+{
+    redBandFilePath = "";
+    redBandImage.release();
+}
+
+void ndviProcessor::clearNirInputImage()
+{
+    nirBandFilePath = "";
+    nirBandImage.release();
 }
 
 string ndviProcessor::getRedBandImagePath()
@@ -52,6 +64,12 @@ int ndviProcessor::getRedBandTotalPix()
     return nRedPixTotal;
 }
 
+int ndviProcessor::getRedBandChannels()
+{
+    int nRedChannels = redBandImage.channels();
+    return nRedChannels;
+}
+
 int ndviProcessor::getNirBandRows()
 {
     int nRowsNir = nirBandImage.rows;
@@ -70,8 +88,119 @@ int ndviProcessor::getNirBandTotalPix()
     return nNirPixTotal;
 }
 
+int ndviProcessor::getNirBandChannels()
+{
+    int nNirChannels = nirBandImage.channels();
+    return nNirChannels;
+}
+
+bool ndviProcessor::checkIfRowsMatch()
+{
+    if (getRedBandRows() == getNirBandRows())
+    {
+        nRows = getRedBandRows();
+        return true;
+    }
+
+    else
+    {
+        return false;
+    }
+}
+
+bool ndviProcessor::checkIfColsMatch()
+{
+    if (getRedBandCols() == getNirBandCols())
+    {
+        nCols = getRedBandCols();
+        return true;
+    }
+
+    else
+    {
+        return false;
+    }
+}
+
+bool ndviProcessor::checkIfTotalPixMatch()
+{
+    if ((getRedBandCols() * getRedBandRows()) == (getNirBandCols() * getNirBandRows()))
+    {
+        return true;
+    }
+
+    else
+    {
+        return false;
+    }
+}
+
+bool ndviProcessor::checkRedSingleChannel()
+{
+    if (getRedBandChannels() == 1)
+    {
+        return true;
+    }
+
+    else
+    {
+        return false;
+    }
+}
+
+bool ndviProcessor::checkNirSingleChannel()
+{
+    if (getNirBandChannels() == 1)
+    {
+        return true;
+    }
+
+    else
+    {
+        return false;
+    }
+}
+
+bool ndviProcessor::checkIfFileTypesMatch()
+{
+    int redFilePathLength = redBandFilePath.length();
+    int nirFilePathLength = nirBandFilePath.length();
+    string tempRedFileExt;
+    string tempNirFileExt;
+    string redFileExt;
+    string nirFileExt;
+
+    for (int i = (redFilePathLength - 1); i > (redFilePathLength - 5); --i)
+    {
+        tempRedFileExt += redBandFilePath[i];
+    }
+
+    for (int i = (nirFilePathLength - 1); i > (nirFilePathLength - 5); --i)
+    {
+        tempNirFileExt += redBandFilePath[i];
+    }
+
+    for (int i = 3; i >= 0; --i)
+    {
+        redFileExt += tempRedFileExt[i];
+        nirFileExt += tempNirFileExt[i];
+    }
+
+    if (redFileExt == nirFileExt)
+    {
+        return true;
+    }
+
+    else
+    {
+        return false;
+    }
+
+}
+
 void ndviProcessor::processImages()
 {
+    processingStarted();
     scanRedImage();
     scanNirImage();
     generateNdviImage();
@@ -139,7 +268,7 @@ void ndviProcessor::generateNdviImage()
         for(int c = 0; c < nCols; ++c)
         {
             //make these pixels black
-            if (ndviPixelTable[r][c] >= -1 && ndviPixelTable[r][c] <= -0.2)
+            if (ndviPixelTable[r][c] >= -1 && ndviPixelTable[r][c] <= -0.3)
             {
                 ndviImage.at<Vec3b>(r, c)[0] = 0;
                 ndviImage.at<Vec3b>(r, c)[1] = 0;
@@ -147,11 +276,11 @@ void ndviProcessor::generateNdviImage()
             }
 
             //make these pixels light red to dark red
-            else if (ndviPixelTable[r][c] >= -0.2 && ndviPixelTable[r][c] < 0.1)
+            else if (ndviPixelTable[r][c] >= -0.3 && ndviPixelTable[r][c] < 0.1)
             {
                 ndviImage.at<Vec3b>(r, c)[0] = 0;
                 ndviImage.at<Vec3b>(r, c)[1] = 0;
-                ndviImage.at<Vec3b>(r, c)[2] = (255 - ((ndviPixelTable[r][c] - -0.2) / 0.002));
+                ndviImage.at<Vec3b>(r, c)[2] = (225 - ((ndviPixelTable[r][c] - -0.3) / 0.002));
             }
 
             //make these pixels light yellow to dark yellow
@@ -165,22 +294,38 @@ void ndviProcessor::generateNdviImage()
             //make these pixels light blue to dark blue
             else if (ndviPixelTable[r][c] >= 0.4 && ndviPixelTable[r][c] < 0.7)
             {
-                ndviImage.at<Vec3b>(r, c)[0] = (188 - ((ndviPixelTable[r][c] - 0.4) / 0.003333333));
-                ndviImage.at<Vec3b>(r, c)[1] = (255 - ((ndviPixelTable[r][c] - 0.4) / 0.002));
-                ndviImage.at<Vec3b>(r, c)[2] = 0;
+                ndviImage.at<Vec3b>(r, c)[0] = (80 - ((ndviPixelTable[r][c] - 0.4) / 0.003));
+                ndviImage.at<Vec3b>(r, c)[1] = (200 - ((ndviPixelTable[r][c] - 0.4) / 0.002));
+                ndviImage.at<Vec3b>(r, c)[2] = (100 - ((ndviPixelTable[r][c] - 0.4) / 0.003));
             }
 
             //make these pixels light green to dark green
             else if (ndviPixelTable[r][c] >= 0.7 && ndviPixelTable[r][c] <= 1)
             {
                 ndviImage.at<Vec3b>(r, c)[0] = 0;
-                ndviImage.at<Vec3b>(r, c)[1] = (205 - (ndviPixelTable[r][c] - 0.7) / 0.002);
-                ndviImage.at<Vec3b>(r, c)[2] = 0;
+                ndviImage.at<Vec3b>(r, c)[1] = (200 - (ndviPixelTable[r][c] - 0.7) / 0.003);
+                ndviImage.at<Vec3b>(r, c)[2] = (60 - (ndviPixelTable[r][c] - 0.7) / 0.003);;
             }
         }
     }
 
-    string fileName = "/home/seth/Documents/qt_projects/tiny_NDVI/temp_images/temp.tif";
-    imwrite(fileName, ndviImage);
-    _refToOutputInProcessor.loadNdviImage(fileName);
+    string filePath = "/home/seth/Documents/qt_projects/tiny_NDVI/temp_images/temp.tif";
+    imwrite(filePath, ndviImage);
+    ndviImageFilePath = filePath;
+    ndviProcessingFinished();
+}
+
+void ndviProcessor::processingStarted()
+{
+    emit processStarted();
+}
+
+void ndviProcessor::ndviProcessingFinished()
+{
+    emit sendFilePath(ndviImageFilePath);
+}
+
+void ndviProcessor::trueColorProcessingFinished()
+{
+    emit sendFilePath(trueColorImageFilePath);
 }

@@ -15,6 +15,7 @@ outputImageGui::outputImageGui(QWidget *parent) :
     ndviKey->setFixedSize(500, 50);
 
     imageProcessProgressBar = createProgressBar();
+    imageProcessProgressBar->hide();
 
     QGridLayout *outputLayout = new QGridLayout;
     outputLayout->addWidget(outputImageDisplay, 4, 4, 40, 40, Qt::AlignCenter);
