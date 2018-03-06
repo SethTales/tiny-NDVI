@@ -2,11 +2,11 @@
 
 Tools and techniques used:
 
-C++
-Qt
-OpenCV
-multi-threading
-pixel manipulation
+C++ \n
+Qt \n
+OpenCV \n
+multi-threading \n
+pixel manipulation \n
 
 A desktop application to produce NDVI images from satellite images
 
