@@ -21,10 +21,14 @@ signals:
 
 public slots:
 
+    void saveButtonClicked();
+    void saveAsButtonClicked();
+
 private:
-    QPushButton *openButton, *saveButton, *saveAsButton;
+    QPushButton *saveButton, *saveAsButton;
     QLabel *outputImageDisplay, *ndviKey;
-    QProgressBar *imageProcessProgressBar;
+    QProgressBar *progressBar;
+    QGridLayout *outputLayout;
 
     QPushButton *createButton(const QString& text);
     QLabel *createLabelDisplay();

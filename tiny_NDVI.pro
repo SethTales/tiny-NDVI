@@ -10,10 +10,12 @@ SOURCES += \
     inputimagegui.cpp \
     outputimagegui.cpp \
     ndviprocessor.cpp \
-    maingui.cpp
+    maingui.cpp \
+    ndviworkerthread.cpp
 
 HEADERS += \
     inputimagegui.h \
     outputimagegui.h \
     ndviprocessor.h \
-    maingui.h
+    maingui.h \
+    ndviworkerthread.h

@@ -36,7 +36,7 @@ private:
     QPixmap *redBandImage, *nirBandImage;
     int pixPerRowRed, pixPerColRed, totalPixRed, numChannelsRed;
     int pixPerRowNir, pixPerColNir, totalPixNir, numChannelsNir;
-    QComboBox *sourceSatelliteList;
+    QComboBox *processType;
     QPlainTextEdit *inputExceptionsDisplay;
 
     QPushButton *createButton(const QString& text);
@@ -45,7 +45,6 @@ private:
     QComboBox *createComboBox();
     QPlainTextEdit *createTextEdit();
 
-    //Mat redImage, nirImage;
     int nRowsRed, nColsRed, nRowsNir, nColsNir, nRowsFinal, nColsFinal;
 
     void checkForInputErrors();

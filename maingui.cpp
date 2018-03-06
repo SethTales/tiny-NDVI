@@ -20,8 +20,9 @@ mainGui::mainGui(QWidget *parent) :
 
     setLayout(mainLayout);
 
+    qRegisterMetaType<string>();
     QObject::connect(processor, SIGNAL(processStarted()), this, SLOT(createOutputImageTab()));
-    QObject::connect(processor, SIGNAL(sendFilePath(string)), this, SLOT(storeNdviFilePath(string)));
+    QObject::connect(processor, SIGNAL(sendFilePath(string)), this, SLOT(storeNdviFilePath(string)), Qt::QueuedConnection);
 }
 
 void mainGui::createOutputImageTab()

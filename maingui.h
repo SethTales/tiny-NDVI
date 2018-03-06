@@ -8,6 +8,7 @@
 #include <QProgressBar>
 #include <string>
 #include <vector>
+#include <stdio.h>
 #include "inputimagegui.h"
 #include "outputimagegui.h"
 #include "ndviprocessor.h"
