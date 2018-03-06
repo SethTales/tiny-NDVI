@@ -7,10 +7,6 @@ using namespace cv;
 inputImageGui::inputImageGui(ndviProcessor &_refToProcessorInConst, QWidget *parent) :
     _refToProcessorInInput(_refToProcessorInConst), QWidget(parent)
 {
-    //std::cout << &_refToProcessorInInput << std::endl;
-
-    //this->setSizePolicy(QSizePolicy::Preferred);
-
     loadRedImageButton = createButton("Load Red Image");
     loadNirImageButton = createButton("Load NIR Image");
     processButton = createButton("Process Images");
@@ -18,7 +14,7 @@ inputImageGui::inputImageGui(ndviProcessor &_refToProcessorInConst, QWidget *par
     redBandImageDisplay = createLabelDisplay();
     nirBandImageDisplay = createLabelDisplay();
 
-    sourceSatelliteList = createComboBox();
+    processType = createComboBox();
 
     inputExceptionsDisplay = createTextEdit();
 
@@ -30,7 +26,7 @@ inputImageGui::inputImageGui(ndviProcessor &_refToProcessorInConst, QWidget *par
     inputLayout->setAlignment(processButton, Qt::AlignRight);
     inputLayout->addWidget(redBandImageDisplay, 1, 0, 12, 12);
     inputLayout->addWidget(nirBandImageDisplay, 20, 0, 12, 12);
-    inputLayout->addWidget(sourceSatelliteList, 13, 25, 1, 8);
+    inputLayout->addWidget(processType, 13, 25, 1, 8);
     inputLayout->addWidget(inputExceptionsDisplay, 20, 20, 0, 0);
 
     setLayout(inputLayout);
@@ -69,10 +65,10 @@ QLabel *inputImageGui::createLabelDisplay()
 
 QComboBox *inputImageGui::createComboBox()
 {
-    QStringList satellites;
-    satellites << "Landsat 1-5, MSS" << "Landsat 4-5, TM" << "Landsat 7, ETM+" << "Landsat 8, OLI/TIRS";
+    QStringList outputImageTypes;
+    outputImageTypes << "NDVI" << "True Color" << "NDWI";
     QComboBox *comboBox = new QComboBox;
-    comboBox->addItems(satellites);
+    comboBox->addItems(outputImageTypes);
     comboBox->setFixedWidth(250);
     return comboBox;
 }
@@ -80,6 +76,7 @@ QComboBox *inputImageGui::createComboBox()
 QPlainTextEdit *inputImageGui::createTextEdit()
 {
     QPlainTextEdit *textEdit = new QPlainTextEdit;
+    textEdit->setPlaceholderText("Input Image Validation");
     textEdit->setFixedSize(600, 400);
     textEdit->setReadOnly(true);
     return textEdit;
@@ -89,7 +86,7 @@ void inputImageGui::loadRedImage()
 {
     inputExceptionsDisplay->clear();
     _refToProcessorInInput.clearRedInputImage();
-    const QString& redBandFileName = QFileDialog::getOpenFileName(this, "Open Image", "/home/seth/Documents/LandSat Images", "Image Files (*.tiff, *.tif, *.TIF)");
+    const QString& redBandFileName = QFileDialog::getOpenFileName(this, "Open Image", "/home/seth/Documents/LandSat Images", "Image Files (*.tif, *.TIF)");
     _refToProcessorInInput.setRedInputImage(redBandFileName.toStdString());
     QPixmap pix;
     pix.load(QString::fromStdString(_refToProcessorInInput.getRedBandImagePath()));
@@ -107,7 +104,7 @@ void inputImageGui::loadNirImage()
 {
     inputExceptionsDisplay->clear();
     _refToProcessorInInput.clearNirInputImage();
-    const QString& nirBandFileName = QFileDialog::getOpenFileName(this, "Open Image", "/home/seth/Documents/LandSat Images", "Image Files (*.tiff, *.tif, *.TIF)");
+    const QString& nirBandFileName = QFileDialog::getOpenFileName(this, "Open Image", "/home/seth/Documents/LandSat Images", "Image Files (*.tif, *.TIF)");
     _refToProcessorInInput.setNirInputImage(nirBandFileName.toStdString());
     QPixmap pix;
     pix.load(QString::fromStdString(_refToProcessorInInput.getNirBandImagePath()));
@@ -219,7 +216,7 @@ void inputImageGui::processImages()
         return;
     }
 
-    _refToProcessorInInput.processImages();
+    _refToProcessorInInput.createProcessingThreads();
 }
 
 

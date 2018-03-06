@@ -13,6 +13,7 @@
 #include <string>
 #include <QObject>
 #include "outputimagegui.h"
+#include "ndviworkerthread.h"
 
 using namespace std;
 using namespace cv;
@@ -38,7 +39,7 @@ public:
     int getNirBandCols();
     int getNirBandTotalPix();
     int getNirBandChannels();
-    void processImages();
+    void createProcessingThreads();
 
     bool checkIfRowsMatch();
     bool checkIfColsMatch();
@@ -52,8 +53,11 @@ signals:
     void sendFilePath(string);
 
 public slots:
+    void ndviProcessingFinished();
+    void storeNdviFilePath(string);
 
 private:
+
     Mat redBandImage, nirBandImage, ndviImage;
     string redBandFilePath, nirBandFilePath, ndviImageFilePath, trueColorImageFilePath;
     int nCols = 0, nRows = 0;
@@ -61,11 +65,8 @@ private:
     vector<vector<double>> nirPixelTable{ { 0 } };
     vector<vector<double>> ndviPixelTable{ { 0 } };
 
-    void scanRedImage();
-    void scanNirImage();
     void generateNdviImage();
     void processingStarted();
-    void ndviProcessingFinished();
     void trueColorProcessingFinished();
 };
 
