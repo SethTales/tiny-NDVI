@@ -2,11 +2,7 @@
 
 Tools and techniques used:
 
-C++ \n
-Qt \n
-OpenCV \n
-multi-threading \n
-pixel manipulation \n
+C++, Qt, OpenCV, multi-threading, pixel manipulation, USGS EarthExplorer for test data
 
 A desktop application to produce NDVI images from satellite images
 
